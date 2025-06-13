@@ -1,61 +1,208 @@
 
-# Content Scheduler Backend (Laravel)
+# 🛠️ Multi-Tenant Inspection Booking System
 
-This is the backend part of the Content Scheduler application, built with Laravel.
+A modular, multi-tenant SaaS inspection booking system built with **Laravel**. Tenants can manage teams, define weekly availability, and generate dynamic inspection time slots for booking.
 
-## Features
+---
 
-- User authentication via Laravel Sanctum
-- Create, edit, delete, and schedule posts
-- Assign posts to multiple platforms
-- Job and schedule command to publish due posts
-- Platform toggling per user
-- Rate limiting: max 10 scheduled posts per day
-- Post analytics by platform
-- API endpoints with validation and filters
+## 📌 Features
 
-## Installation
+- 🏢 **Multi-Tenancy** (tenant_id scoped)
+- 👥 **Team Management**
+- 🗓️ **Weekly Team Availability**
+- ⏱️ **Dynamic Time Slot Generation**
+- 📆 **Booking System with Conflict Prevention**
+- 🔐 **API Authentication using Sanctum**
+- 📁 **Modular HMVC Structure**
 
-```bash
-# Clone the repository
-git clone https://github.com/akoty24/content_scheduler_backend.git
+---
 
-# Navigate to project directory
-cd content_scheduler_backend
+## 🧱 Technologies
 
-# Install PHP dependencies
-composer install
+- Laravel 10+
+- Sanctum
+- MySQL
+- HMVC Structure via `/Modules`
+- Laravel Eloquent
+- Carbon & CarbonPeriod
 
-# Copy .env and generate key
-cp .env.example .env
-update
- APP_URL=http:localhost:8080 to 
+---
 
- APP_URL=http://127.0.0.1:8000
-php artisan key:generate
+## 🗂 Suggested Folder Structure
 
-# Configure your database in .env
-
-# Run migrations and seeders
-php artisan migrate --seed
-
-# Create queue table
-php artisan queue:table
-php artisan migrate
-
-# Run scheduler and queue worker
-php artisan schedule:run
-php artisan queue:work
+```
+/Modules
+├── Auth
+├── Tenants
+├── Teams
+├── Availability
+├── Bookings
+├── Users
 ```
 
-## API Endpoints
+---
 
-- `/api/register` - Register a new user
-- `/api/login` - Login user and get token
-- `/api/posts` - CRUD operations for posts
-- `/api/platforms` - List and manage platforms
+## 🚀 Getting Started
 
-## Notes
+### 1. Clone the Repository
 
-- Make sure to set up the queue and scheduler to run continuously.
-- The actual post publishing is mocked for demo purposes.
+```bash
+git clone https://github.com/akoty24/inspection-booking-backend
+cd inspection-booking-backend
+```
+
+### 2. Install Dependencies
+
+```bash
+composer install
+```
+
+### 3. Configure Environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit your `.env` with database and app info:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inspection_db
+DB_USERNAME=root
+DB_PASSWORD=
+
+APP_URL=http://127.0.0.1:8000
+```
+
+### 4. Run Migrations & Seeders
+
+```bash
+php artisan migrate --seed
+```
+
+### 5. Serve the Application
+
+```bash
+php artisan serve
+```
+
+---
+
+## 🔑 Authentication (Sanctum)
+
+All API endpoints require authentication.
+
+- Register a user: `POST /api/v1/auth/register`
+- Login: `POST /api/v1/auth/login`
+
+Add `Authorization: Bearer {token}` in headers to access protected routes.
+
+---
+
+## 📬 API Endpoints
+
+### 🔐 Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register tenant + admin |
+| POST | `/api/v1/auth/login` | Get token |
+
+---
+
+### 🏢 Tenants
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/tenant` | Get current tenant info |
+
+---
+
+### 👥 Teams
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/teams` | List teams |
+| POST | `/api/v1/teams` | Create a team |
+| POST | `/api/v1/teams/{id}/availability` | Set weekly availability |
+
+---
+
+### 🕒 Time Slots
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/teams/{id}/generate-slots?from=YYYY-MM-DD&to=YYYY-MM-DD` | Generate 1-hour slots dynamically |
+
+> ⚠️ Time slots are **not stored** in the database. They're generated on-the-fly based on team availability and filtered to avoid booked slots.
+
+---
+
+### 📅 Bookings
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/bookings` | List current user's bookings |
+| POST | `/api/v1/bookings` | Book a time slot |
+| DELETE | `/api/v1/bookings/{id}` | Cancel a booking |
+
+---
+
+
+
+## 🌱 Dummy Data (Seeders)
+
+Run seeders to populate:
+
+- Tenants
+- Users
+- Teams
+- Team Availability
+- Sample Bookings
+
+```bash
+php artisan db:seed
+```
+
+---
+
+## 📂 Postman Collection
+
+You can import the Postman collection located at:
+
+```
+docs/InspectionBooking.postman_collection.json
+```
+
+It includes requests for:
+
+- Auth
+- Team creation
+- Availability setup
+- Slot generation
+- Booking
+
+---
+
+## ✍️ Notes
+
+- Multi-tenancy is implemented using **tenant_id** scoping.
+- Each user belongs to a tenant.
+- All queries are automatically scoped to the authenticated user’s tenant.
+- Time slot generation uses `CarbonPeriod` to loop through date ranges and check availability.
+- Conflict checking is done in real time by comparing generated slots with existing bookings.
+
+---
+
+## 🧑‍💻 Author
+
+**Mohamed Saber**  
+
+---
+
+## 📝 License
+
+This project is open-source and available under the [MIT License](LICENSE).
